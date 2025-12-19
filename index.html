@@ -80,6 +80,74 @@
             background-color: #6c757d !important;
             cursor: not-allowed;
         }
+
+        /* Estilo do Modal */
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            /* Fundo preto translúcido */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            /* Esconde o modal inicialmente */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #modal.active {
+            visibility: visible;
+            /* Torna o modal visível */
+            opacity: 1;
+        }
+
+        #modal-content {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: pop-up 0.3s ease;
+        }
+
+        #modal-content h2 {
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        #modal-content button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #modal-content button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Animação de entrada do modal */
+        @keyframes pop-up {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
@@ -98,6 +166,14 @@
         </div>
     </div>
 
+    <!-- Modal para exibição do ganhador -->
+    <div id="modal">
+        <div id="modal-content">
+            <h2 id="modal-winner">🎉 Nome do Ganhador 🎉</h2>
+            <button id="closeModalBtn">OK</button>
+        </div>
+    </div>
+
     <script>
         // URL do arquivo JSON no GitHub (raw link do arquivo)
         const GITHUB_JSON_URL = "https://raw.githubusercontent.com/AlbertoJunior22/sorteio_lemon3D/refs/heads/main/data.json";
@@ -107,6 +183,9 @@
         const winnersList = document.getElementById('winners-list');
         const sortearBtn = document.getElementById('sortearBtn');
         const winnerDisplay = document.getElementById('winner');
+        const modal = document.getElementById("modal"); // Modal
+        const modalWinner = document.getElementById("modal-winner"); // Nome no modal
+        const closeModalBtn = document.getElementById("closeModalBtn"); // Botão para fechar o modal
 
         let sequentialNumber = 1; // Número sequencial para winners-list
 
@@ -165,6 +244,17 @@
             sequentialNumber++; // Incrementa o número sequencial
         }
 
+        // Função para mostrar o modal
+        function showModal(winnerName) {
+            modalWinner.textContent = `🎉 Parabéns, ${winnerName}! 🎉`;
+            modal.classList.add("active");
+        }
+
+        // Função para fechar o modal
+        function closeModal() {
+            modal.classList.remove("active");
+        }
+
         // Função para sortear um nome
         function sortear() {
             // Verifica se há nomes restantes
@@ -183,15 +273,17 @@
             // Remove o nome da lista
             remainingNames.splice(randomIndex, 1);
 
-            // Exibe o vencedor, atualiza a lista e aciona confetes
-            winnerDisplay.textContent = `🎉 Parabéns, ${winnerName}! 🎉`;
-            winnerDisplay.style.color = "#007BFF";
+            // Exibe o vencedor
             updateWinnersList(winnerName);
+            showModal(winnerName);
             launchConfetti();
         }
 
-        // Adiciona evento ao botão
+        // Adiciona evento ao botão de sorteio
         sortearBtn.addEventListener("click", sortear);
+
+        // Adiciona evento para fechar o modal
+        closeModalBtn.addEventListener("click", closeModal);
 
         // Carrega os dados ao iniciar a página
         fetchData();
