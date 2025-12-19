@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteio Aleatório</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+
+        #winners-list-container {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        #winners-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 1rem;
+            color: #444;
+            text-align: left;
+        }
+
+        #winners-list li {
+            margin: 5px 0;
+        }
+
+        #main-container {
+            flex: 2;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #winner {
+            font-size: 2rem;
+            color: #007BFF;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .disabled {
+            background-color: #6c757d !important;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <!-- Seção da lista de ganhadores -->
+        <div id="winners-list-container">
+            <ul id="winners-list"></ul>
+        </div>
+
+        <!-- Seção principal de sorteio -->
+        <div id="main-container">
+            <h1>Sorteio de Nomes</h1>
+            <button id="sortearBtn" disabled>Carregando...</button>
+            <p id="winner"></p>
+        </div>
+    </div>
+
+    <script>
+        // URL do arquivo JSON no GitHub (raw link do arquivo)
+        const GITHUB_JSON_URL = "https://github.com/AlbertoJunior22/sorteio_lemon3D/data.json";
+
+        let data = []; // Armazena os dados trazidos do arquivo JSON
+        let remainingNames = []; // Lista com nomes únicos
+        const winnersList = document.getElementById('winners-list');
+        const sortearBtn = document.getElementById('sortearBtn');
+        const winnerDisplay = document.getElementById('winner');
+
+        let sequentialNumber = 1; // Número sequencial para winners-list
+
+        // Função para buscar os dados do arquivo JSON no GitHub
+        async function fetchData() {
+            try {
+                const response = await fetch(GITHUB_JSON_URL);
+                if (!response.ok) {
+                    throw new Error(`Erro ao buscar os dados: ${response.statusText}`);
+                }
+                data = await response.json(); // Parse do JSON
+                remainingNames = [...new Set(data.map(obj => obj.nome))]; // Filtra nomes únicos
+                sortearBtn.disabled = false; // Habilita o botão após os dados serem carregados
+                sortearBtn.textContent = "Sortear";
+            } catch (error) {
+                winnerDisplay.textContent = "Erro ao carregar os dados. Tente novamente mais tarde.";
+                winnerDisplay.style.color = "red";
+                console.error(error);
+            }
+        }
+
+        // Função para acionar confetes
+        function launchConfetti() {
+            const duration = 2 * 1000; // 2 segundos
+            const end = Date.now() + duration;
+
+            const colors = ["#bb0000", "#ffffff", "#ffdd00", "#00aaff", "#1f7a1f"];
+
+            (function frame() {
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: colors
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            })();
+        }
+
+        // Função para exibir ganhador na lista
+        function updateWinnersList(winnerName) {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${sequentialNumber}. ${winnerName}`; // Nome com número sequencial
+            winnersList.appendChild(listItem); // Adiciona na lista
+            sequentialNumber++; // Incrementa o número sequencial
+        }
+
+        // Função para sortear um nome
+        function sortear() {
+            // Verifica se há nomes restantes
+            if (remainingNames.length === 0) {
+                winnerDisplay.textContent = "Todos os nomes já foram sorteados!";
+                winnerDisplay.style.color = "red";
+                sortearBtn.classList.add("disabled"); // Desativa botão
+                sortearBtn.disabled = true;
+                return;
+            }
+
+            // Sorteia um nome aleatório
+            const randomIndex = Math.floor(Math.random() * remainingNames.length);
+            const winnerName = remainingNames[randomIndex];
+
+            // Remove o nome da lista
+            remainingNames.splice(randomIndex, 1);
+
+            // Exibe o vencedor, atualiza a lista e aciona confetes
+            winnerDisplay.textContent = `🎉 Parabéns, ${winnerName}! 🎉`;
+            winnerDisplay.style.color = "#007BFF";
+            updateWinnersList(winnerName);
+            launchConfetti();
+        }
+
+        // Adiciona evento ao botão
+        sortearBtn.addEventListener("click", sortear);
+
+        // Carrega os dados ao iniciar a página
+        fetchData();
+    </script>
+</body>
+
+</html>
